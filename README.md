@@ -1,16 +1,35 @@
-# 🎓 Akıllı Kampüs Duyuru ve Bildirim Yönetim Sistemi
+# Akıllı Kampüs Duyuru Sistemi
 
-Bu proje, **Yazılım Mimari ve Tasarımı (Software Architecture and Design)** prensipleri doğrultusunda geliştirilmiş, temiz kod (Clean Code) standartlarına ve katmanlı mimariye (Layered Architecture) sahip modern bir tek sayfa (SPA) web uygulamasıdır. 
+Katmanlı mimari ve tasarım desenleri kullanılarak geliştirilmiş web tabanlı kampüs duyuru ve bildirim yönetim sistemi.
 
-Proje kapsamında zorunlu tutulan **Tasarım Desenleri (Design Patterns)**, akademik ve kurumsal standartlara uygun olarak sistem genelinde somut şekilde konumlandırılmış ve veri kalıcılığı (storage) mekanizmalarıyla reaktif şekilde entegre edilmiştir.
+## Genel Bakış
 
----
+Bu proje, üniversite kampüsündeki duyuruların oluşturulması, görüntülenmesi ve kullanıcılara bildirim olarak iletilmesini simüle eden web tabanlı bir uygulamadır.
 
-## 🏛️ 1. Mimari Yapı (Layered Architecture)
+Projenin temel amacı, Yazılım Mimarisi ve Tasarımı dersi kapsamında öğrenilen katmanlı mimari yaklaşımını ve tasarım desenlerini gerçek bir uygulama senaryosu üzerinde uygulamaktır.
 
-Sistem, sorumlulukların net bir şekilde ayrılması (Separation of Concerns) ve test edilebilirliğin artırılması amacıyla **4 katmanlı mimari** standardına göre tasarlanmıştır:
+Proje kapsamında farklı sorumlulukların ayrı katmanlarda ele alınması, bileşenler arasındaki bağımlılıkların azaltılması ve yaygın tasarım desenlerinin uygun kullanım alanlarının gösterilmesi hedeflenmiştir.
 
-```
+## Temel Özellikler
+
+- Kampüs duyurularının görüntülenmesi
+- Yeni duyuru oluşturma
+- Duyuruların kategorilere göre yönetilmesi
+- Duyuru bildirimlerinin oluşturulması
+- Kullanıcı ve bildirim etkileşimlerinin yönetilmesi
+- Tema değiştirme desteği
+- Katmanlı mimari ile sorumlulukların ayrıştırılması
+- Observer, Factory, Singleton ve Mediator tasarım desenlerinin kullanılması
+- Tarayıcı `localStorage` kullanılarak uygulama verilerinin saklanması
+- Etkileşimli web arayüzü
+
+## Kullanılan Yazılım Mimarisi
+
+Proje, sorumlulukların birbirinden ayrıştırılması amacıyla katmanlı mimari yaklaşımı kullanılarak tasarlanmıştır.
+
+Uygulamada dört temel katman bulunmaktadır:
+
+```text
 [ Presentation Layer ]  <--- (DOMManager / UI Components)
         │
         ▼
@@ -23,71 +42,187 @@ Sistem, sorumlulukların net bir şekilde ayrılması (Separation of Concerns) v
 [ Infrastructure Layer ] <--- (SystemStateManager / LocalStorage)
 ```
 
-1. **Domain Layer (İş Kuralları & Varlıklar)**: Sistemin kalbidir. Dış katmanlardan ve kütüphanelerden tamamen izole edilmiştir. İş kurallarını, ana nesne tanımlarını (`User`, `Announcement` vb.) ve üretim fabrikalarını barındırır.
-2. **Application Layer (Uygulama Servisleri & Koordinasyon)**: Domain nesnelerini ve iş mantığını koordine eder. Bildirim gönderim merkezi, yayıncı mekanizması ve sistem olay günlükleyicisi bu katmandadır.
-3. **Infrastructure Layer (Altyapı & Veri Depolama)**: Tarayıcı hafızasını (`localStorage`) kullanarak sistem durumunun kalıcılığını (persistence) yönetir. Verileri geri yüklerken (deserialization) domain katmanındaki fabrikaları polimorfik olarak delege eder.
-4. **Presentation Layer (Kullanıcı Arayüzü & Sunum)**: Premium glassmorphism tasarımı, açık/koyu tema motoru, interaktif simülasyon araçları ve onboarding kullanım rehberini barındırır. **Passive View** desenine uygun olarak depolama ve iş katmanlarından tamamen arındırılmıştır.
+### Presentation Layer
 
----
+Kullanıcı arayüzü ve DOM ile ilgili işlemlerden sorumludur.
 
-## 🎨 2. Uygulanan Tasarım Desenleri (Design Patterns)
+Bu katmanda:
 
-### 👥 A. Observer Pattern (Gözlemci Deseni)
-* **Konum:** `js/application/announcement-publisher.js` (Subject) & `js/domain/user.js` (Observer)
-* **Amaç:** Yeni bir duyuru yayınlandığında, bu duyuruyla eşleşen hedef kitledeki (Öğretmen/Öğrenci) kullanıcıları otomatik olarak bilgilendirmek.
-* **Açıklama:** Yayıncı (`AnnouncementPublisher`), kendisine abone olan gözlemcileri (`User` alt sınıflarını) listeler. Yeni duyuru yayınlandığında polimorfik `update(announcement)` çağrısı yapılır. Kullanıcı, kendi rolü ve bildirim tercihleri (SMS, E-posta, Mobil) doğrultusunda bildirimleri tetikler veya hedef kitlesi dışındaki duyuruları filtreler.
+- `DOMManager`
+- UI bileşenleri
 
-### 🏭 B. Factory Pattern (Fabrika Deseni)
-* **Konum:** `js/domain/user-factory.js`, `js/domain/announcement-factory.js`, `js/domain/notification-factory.js`
-* **Amaç:** Somut (concrete) sınıfların doğrudan `new` anahtar kelimesi ile oluşturulmasının önüne geçmek ve gevşek bağlılığı (loose coupling) korumak.
-* **Açıklama:** Kullanıcıların, duyuruların (Sınav, Yemekhane, Seminer, Kütüphane) ve bildirim kanallarının (SMS, E-posta, Push) örneklenme aşaması fabrikalar üzerinden yürütülür. Bu sayede sisteme yeni bir tür eklendiğinde mevcut depolama ve arayüz kodlarına dokunulmaz (**Open-Closed Principle**).
+gibi yapılar bulunmaktadır.
 
-### 👑 C. Singleton Pattern (Tekil Desen)
-* **Konum:** `js/application/logger.js` (Logger), `js/application/notification-center.js` (NotificationCenter), `js/infrastructure/storage.js` (SystemStateManager)
-* **Amaç:** Sistem ömrü boyunca bu sınıflardan bellekte yalnızca tek bir örneğin (instance) bulunmasını garanti etmek.
-* **Açıklama:** Sistem günlüğü çakışmalarını önlemek, tekil veri durumunu (state) korumak ve bildirim akışını tek bir merkezden koordine etmek amacıyla `getInstance()` statik metodu kullanılmıştır.
+### Application Layer
 
-### 🔌 D. Mediator Pattern (Arabulucu Deseni)
-* **Konum:** `js/presentation/dom-manager.js` (Mediator)
-* **Amaç:** Sunum katmanındaki "Tanrı Nesne" (God Object) anti-desenini kırarak UI modüllerini birbirinden ayırmak.
-* **Açıklama:** `DOMManager` arayüz arabulucusu görevi görür. Alt modüller (`user-component.js`, `announcement-component.js` vb.) birbirleriyle doğrudan konuşmak yerine mediator üzerinden haberleşir. Bu sayede sunum katmanı yüksek düzeyde modüler ve sürdürülebilir bir yapıya kavuşmuştur.
+Uygulamanın iş akışlarını ve bileşenler arasındaki iletişimi yönetir.
 
----
+Bu katmanda:
 
-## 💎 3. Öne Çıkan Gelişmiş Özellikler
+- `Publisher`
+- `NotificationCenter`
+- `Logger`
 
-* 🌓 **Açık / Koyu Tema Desteği:** Kullanıcı tercihlerini hafızada (`localStorage`) saklayan, modern HSL renk paletine sahip, gradyan zeminlerde yüksek kontrast standartlarıyla (WCAG) uyumlu premium tema motoru.
-* 🧭 **Etkileşimli Sistem Rehberi (Onboarding):** Teknik jargondan uzak, ilk kez giren kullanıcılara sistemi adım adım pürüzsüz koordinat hesaplamaları ve dinamik spotlight maskesi ile tanıtan interaktif Türkçe rehber.
-* 🤖 **8 Adımlı Otomatik Demo Senaryo:** Ödev ve proje isterlerinde yer alan tüm senaryonun (kullanıcı ekleme, tercih belirleme, sınav duyurusu girme, polimorfik bildirim üretimi ve filtreleme) gecikmeli animasyonlarla tek tıkla izlenebilmesini sağlayan simülatör.
-* 🧹 **Bellek Kapasite Yönetimi (Capped Buffer):** Sistem günlüğü (logger) ve bildirim merkezinde oluşabilecek bellek sızıntılarını (memory leaks) önleyen maksimum 200 kayıttan oluşan dairesel sınırlandırılmış bellek havuzu.
+gibi yapılar bulunmaktadır.
 
----
+### Domain Layer
 
-## 🚀 4. Projeyi Çalıştırma
+Uygulamanın temel iş nesnelerini ve domain mantığını içerir.
 
-Projenin ES6 Modülleri (import/export) üzerinden çalışabilmesi için tarayıcıda yerel bir HTTP sunucusu üzerinden açılması gerekmektedir:
+Bu katmanda:
 
-### 🐍 Python Sunucusu ile (Önerilen)
-Proje ana dizininde terminali açarak aşağıdaki komutu çalıştırın:
-```bash
-python3 -m http.server 8000
+- `User`
+- `Announcement`
+- Factory yapıları
+
+bulunmaktadır.
+
+### Infrastructure Layer
+
+Uygulamanın veri saklama ve sistem durumuyla ilgili altyapı işlemlerini yönetir.
+
+Bu katmanda:
+
+- `SystemStateManager`
+- `LocalStorage`
+
+kullanılmaktadır.
+
+Bu katmanların ayrıştırılması, uygulamadaki bileşenlerin sorumluluklarının belirginleştirilmesini ve bileşenler arasındaki bağımlılıkların daha kontrollü şekilde yönetilmesini amaçlamaktadır.
+
+## Kullanılan Tasarım Desenleri
+
+Projede farklı yazılım tasarım problemlerini çözmek ve bileşenler arasındaki iletişimi yönetmek amacıyla çeşitli tasarım desenleri kullanılmıştır.
+
+### Observer Pattern
+
+Bir olay gerçekleştiğinde, bu olayı takip eden bileşenlerin otomatik olarak bilgilendirilmesini sağlamak amacıyla kullanılmıştır.
+
+Projedeki duyuru ve bildirim akışlarında nesneler arasındaki olay tabanlı iletişimin yönetilmesine yardımcı olur.
+
+### Factory Pattern
+
+Farklı türlerdeki nesnelerin oluşturulmasını merkezi bir yapı üzerinden yönetmek amacıyla kullanılmıştır.
+
+Nesne oluşturma sorumluluğunun ilgili sınıflardan ayrılmasını sağlayarak daha düzenli bir yapı oluşturmayı amaçlar.
+
+### Singleton Pattern
+
+Uygulama içerisinde tek bir örneğinin bulunması gereken bileşenlerin merkezi olarak yönetilmesi amacıyla kullanılmıştır.
+
+Bu yapı, belirli uygulama bileşenlerine uygulama genelinde ortak erişim sağlanmasına yardımcı olur.
+
+### Mediator Pattern
+
+Bileşenler arasındaki doğrudan iletişimi azaltmak ve iletişim süreçlerini merkezi bir yapı üzerinden yönetmek amacıyla kullanılmıştır.
+
+Bu sayede bileşenlerin birbirleriyle doğrudan olan bağımlılıklarının azaltılması hedeflenmiştir.
+
+## AI-Assisted Development
+
+Bu proje, ders kapsamında verilen AI-assisted development yaklaşımı doğrultusunda geliştirilmiştir.
+
+Geliştirme sürecinde yapay zeka destekli programlama araçlarından yararlanılmıştır. Yapay zeka; kod oluşturma, mevcut kod üzerinde geliştirme, hata ayıklama, tasarım desenlerinin uygulanması ve geliştirme sürecinde teknik alternatiflerin değerlendirilmesi gibi aşamalarda yardımcı bir araç olarak kullanılmıştır.
+
+AI desteği, geliştirme sürecini hızlandırmak ve farklı yazılım mimarisi yaklaşımlarını uygulamalı olarak değerlendirmek amacıyla kullanılmıştır.
+
+Projenin kapsamı, gereksinimleri, mimari yaklaşımı ve kullanılacak tasarım desenleri ise ders kapsamında belirlenen proje hedefleri doğrultusunda şekillendirilmiştir.
+
+## Teknolojiler
+
+- HTML
+- CSS
+- JavaScript
+- LocalStorage
+- Katmanlı Mimari
+- Observer Pattern
+- Factory Pattern
+- Singleton Pattern
+- Mediator Pattern
+
+## Veri Yönetimi
+
+Uygulamanın mevcut prototipinde verilerin tarayıcı üzerinde saklanması için `localStorage` kullanılmaktadır.
+
+Bu yaklaşım, harici bir veritabanı veya sunucu gerektirmeden uygulamanın temel veri yönetimi ve kullanıcı etkileşimlerinin simüle edilmesini sağlar.
+
+Proje akademik bir prototip olarak tasarlandığından, `localStorage` kullanımı gerçek üretim ortamlarında kullanılacak kalıcı bir veri yönetimi çözümü olarak değerlendirilmemelidir.
+
+## Kullanıcı Arayüzü
+
+Uygulama, kullanıcıların kampüs duyurularını görüntüleyebileceği ve duyuru yönetimi ile ilgili işlemleri gerçekleştirebileceği web tabanlı bir arayüz sunmaktadır.
+
+Arayüz içerisinde:
+
+- Duyuru listeleri
+- Duyuru detayları
+- Bildirimler
+- Kategori bilgileri
+- Tema seçenekleri
+- Etkileşimli bileşenler
+
+gibi bölümler bulunmaktadır.
+
+## Proje Yapısı
+
+```text
+AkilliKampusDuyuruSistemi/
+│
+├── index.html
+├── css/
+│   └── ...
+├── js/
+│   └── ...
+├── assets/
+│   └── ...
+└── README.md
 ```
-Ardından tarayıcınızda şu adresi açın: `http://localhost:8000`
 
-### 📦 Node.js (npx serve) ile
-```bash
-npx serve
-```
-Ardından konsolda belirtilen yerel adresi tarayıcınızda açın.
+Proje yapısındaki dosya ve klasörler uygulamanın mevcut sürümüne göre düzenlenmiştir.
 
----
+## Projenin Amacı
 
-## 📝 5. Katkı Verenler, Yapay Zeka Katkıları & Lisans
+Bu projenin temel amacı, yazılım mimarisi ve tasarım desenleri konularında öğrenilen kavramları gerçek bir uygulama senaryosu üzerinde uygulamaktır.
 
-Bu proje, **BİL 3204 - Yazılım Mimari ve Tasarımı** dersi projesi kapsamında tasarlanmış ve geliştirilmiştir. 
+Proje kapsamında özellikle:
 
-### 🤖 Yapay Zeka Destekli Geliştirme Süreci (AI-Assisted Development)
-Projenin analiz, mimari tasarım, desen uygulamaları, kod yazımı ve UI/UX iyileştirme süreçlerinde modern yapay zeka araçlarından aktif olarak yararlanılmış ve eş programlama (pair programming) yapılmıştır:
-* **Google DeepMind - Antigravity AI:** Projenin katmanlı mimari yapısının kurulması, Observer, Factory, Singleton ve Mediator tasarım desenlerinin SOLID prensiplerine uygun olarak kodlanması ve arayüz modüllerinin reaktif şekilde bağlanması süreçlerini koordine etmiştir.
-* **OpenAI - ChatGPT:** Fikir geliştirme, tutorial (onboarding) rehberinin kullanıcı dostu metin tasarımları, mimari tasarım kararlarının sorgulanması ve senaryo planlama aşamalarında danışmanlık yapmıştır.
-* **GitHub Copilot:** Kod yazımı sırasında akıllı kod tamamlama, hızlı fonksiyon şablonları oluşturma ve mükerrer JavaScript kodlarının refaktör edilmesi süreçlerinde verimlilik sağlamıştır.
+- Sorumlulukların katmanlara ayrıştırılması
+- Modüler yazılım geliştirme
+- Bileşenler arasındaki bağımlılıkların azaltılması
+- Tasarım desenlerinin uygun kullanım alanlarının incelenmesi
+- Katmanlı mimarinin uygulanması
+- Olay tabanlı iletişim yapılarının kullanılması
+- AI-assisted software development yaklaşımının deneyimlenmesi
+
+üzerinde çalışılmıştır.
+
+## Proje Durumu
+
+Bu proje akademik amaçlı geliştirilmiş bir web uygulaması prototipidir.
+
+Uygulama, yazılım mimarisi ve tasarım desenlerinin kullanımını göstermek amacıyla hazırlanmıştır. Gerçek bir üniversite bilgi sistemi veya üretim ortamında kullanılmak üzere tasarlanmış kapsamlı bir platform değildir.
+
+## Gelecek Çalışmalar
+
+Proje ileride aşağıdaki özelliklerle geliştirilebilir:
+
+- Gerçek bir backend ve veritabanı entegrasyonu
+- Kullanıcı kimlik doğrulama ve yetkilendirme
+- Gerçek zamanlı bildirim sistemi
+- Yönetici paneli
+- Duyuru arama ve filtreleme
+- Kullanıcı bazlı bildirim tercihleri
+- Daha kapsamlı test altyapısı
+- REST API entegrasyonu
+
+## Çalıştırma
+
+Proje herhangi bir modern web tarayıcısında çalıştırılabilir.
+
+Repository indirildikten sonra `index.html` dosyası tarayıcıda açılarak uygulama çalıştırılabilir.
+
+## Akademik Bağlam
+
+Bu proje, Yazılım Mimarisi ve Tasarımı dersi kapsamında geliştirilmiştir.
+
+Projenin geliştirilmesinde ders kapsamında ele alınan katmanlı mimari ve tasarım desenlerinin uygulamalı olarak kullanılması ve AI-assisted development yaklaşımının yazılım geliştirme sürecinde deneyimlenmesi amaçlanmıştır.
